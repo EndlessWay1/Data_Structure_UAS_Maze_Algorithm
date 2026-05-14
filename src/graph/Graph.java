@@ -1,3 +1,5 @@
+package graph;
+
 /* 
  * Struktur data Graph dengan bobot pada setiap edge
  * sources: https://www.lavivienpost.net/weighted-graph-as-adjacency-list/  

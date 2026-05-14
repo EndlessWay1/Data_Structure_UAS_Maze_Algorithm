@@ -1,5 +1,10 @@
 package graph;
 
-public class MazeGraph {
-
+public class MazeGraph<T> {
+	
+	//	Maze algorithm here
+	public void GenerateMaze() {
+		//	TODO 
+	}
 }
+
