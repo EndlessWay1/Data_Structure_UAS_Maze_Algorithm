@@ -1,3 +1,5 @@
+package MazeGeneratorCath;
+
 import java.util.ArrayList;
 import java.util.Random;
 
@@ -42,7 +44,15 @@ public class Block {
         }
     }
 
-    // check if there are unvisited neighbors
+    public boolean[] getWalls() {
+		return walls;
+	}
+
+	public ArrayList<Block> getNeighbors() {
+		return neighbors;
+	}
+
+	// check if there are unvisited neighbors
     public boolean hasUnvisitedNeighbors() {
         for(Block n : neighbors) {
             if(!n.visited) {
