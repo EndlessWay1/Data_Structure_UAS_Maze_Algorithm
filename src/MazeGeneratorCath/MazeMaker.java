@@ -1,51 +1,49 @@
+package MazeGeneratorCath;
 import java.util.ArrayList;
-import java.util.Scanner;
 
-public class Main {
+public class MazeMaker{
 
-    static int rows;
-    static int cols;
-    static Block[][] blocks;
-    static Block current;
+    int rows;
+    int cols;
+    Block[][] blocks;
+    Block current;
     // for backtracking
-    static ArrayList<Block> stack = new ArrayList<>();
 
-    public static void main(String[] args) {
-        Scanner scan = new Scanner(System.in);
-        System.out.print("Enter the number of rows: ");
-        rows = scan.nextInt();
-        System.out.print("Enter the number of columns: ");
-        cols = scan.nextInt();
-
-        scan.close();
-
-        blocks = new Block[rows][cols];
-
-        // create blocks
+    public MazeMaker(int row, int col) {
+		// TODO Auto-generated constructor stub
+    	rows = row;
+    	cols = col;
+    	
+    	blocks = new Block[rows][cols];
+    	
+    	// create blocks
         for(int i = 0; i < rows; i++) {
             for(int j = 0; j < cols; j++) {
                 blocks[i][j] =
                         new Block(i, j);
             }
         }
-
-        // add neighbors
+        
+     // add neighbors
         for(int i = 0; i < rows; i++) {
             for(int j = 0; j < cols; j++) {
                 blocks[i][j].addNeighbors(blocks, rows, cols);
             }
         }
-
-        // start from the top-left block
+        
         current = blocks[0][0];
         current.visited = true;
         generateMaze();
-        printMaze();
-    }
+        
+    	
+	}
+    
 
     // maze generation using depth-first search
-    static void generateMaze() {
-        while(true) {
+    private void generateMaze() {
+        ArrayList<Block> stack = new ArrayList<>();
+
+    	while(true) {
             // check if there are unvisited neighbors
             if(current.hasUnvisitedNeighbors()) {
                 Block next = current.pickRandomNeighbor();
@@ -66,9 +64,22 @@ public class Main {
             }
         }
     }
+    
+    public void regenerateMaze() {
+    	for (int i = 0; i < rows; i++) {
+    		for (int j = 0; j < cols; j++) {
+    			blocks[i][j].visited = false;
+    			for (int k = 0; k < 4; k++) {    				
+    				blocks[i][j].walls[k] = true;
+    			}
+    		}
+    	}
+    	
+    	generateMaze();
+    }
 
     // remove walls between current and next blocks
-    static void removeWalls(Block current, Block next) {
+    private void removeWalls(Block current, Block next) {
         int x = current.col - next.col;
         int y = current.row - next.row;
 
@@ -92,7 +103,7 @@ public class Main {
         }
     }
     // print the maze
-    static void printMaze() {
+    public void printMaze() {
         for(int i = 0; i < rows; i++) {
             for(int j = 0; j < cols; j++) {
                 System.out.print("[");
@@ -114,4 +125,19 @@ public class Main {
             System.out.println();
         }
     }
+
+
+	public int getRows() {
+		return rows;
+	}
+
+	public int getCols() {
+		return cols;
+	}
+
+
+	public Block[][] getBlocks() {
+		return blocks;
+	}
+
 }
