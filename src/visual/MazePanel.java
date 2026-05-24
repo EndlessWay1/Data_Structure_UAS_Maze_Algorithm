@@ -19,11 +19,15 @@ import graph.Graph;
 
 public class MazePanel extends JPanel{
 	MazeMaker mazeMaker;
-	JPanel[][] panels;
 	Color borderColor = Color.green;
 	Color bgColor = Color.black;
 	int rows;
 	int cols;
+	
+	public MazeMaker getMazeMaker() {
+		return mazeMaker;
+	}
+
 	int borderSize =  1;
 	
 	public MazePanel(MazeMaker mazeMaker) {
