@@ -1,4 +1,4 @@
-package graph;
+package MazeGeneratorCath;
 
 import java.util.Random;
 

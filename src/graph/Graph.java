@@ -6,7 +6,9 @@ package graph;
  * 
  */
 
-import java.util.*;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Objects;
 
 class Edge<T> { 
 	private T neighbor; //connected vertex
@@ -61,6 +63,22 @@ public class Graph<T> {
 		edge_length = 0;
 	}
 
+	private boolean containsEdge(T a, T b){
+		MyLinearList<Edge<T>> root = adj.get(a);
+		if (root == null){
+			return false;
+		}
+		Node<Edge<T>> head = root.head;
+		while(head != null){
+			T neigh = head.getData().getNeighbor();
+			if (Objects.equals(neigh, b)){
+				return true;
+			}
+			head = head.getNext();
+		}
+		return false;
+	}
+
     //Add edges including adding nodes, Time O(1) Space O(1)
 	public void addEdge(T a, T b, int w) {
 		if (!adj.containsKey(a)){
@@ -68,15 +86,18 @@ public class Graph<T> {
 			adj.put(a, new MyLinearList<>()); //add node
 		}
 		if (!adj.containsKey(b)){
-			vertex_length ++;
+			vertex_length +=1;
 			adj.put(b, new MyLinearList<>()); //add node
 		}
-		Edge<T> edge1 = new Edge<>(b, w);
-		adj.get(a).pushQ(edge1);//add(edge1); //add edge
-		if (!directed) { //undirected
-			Edge<T> edge2 = new Edge<>(a, w);
-			adj.get(b).pushQ(edge2);
-		}			
+		if (!containsEdge(a, b)){
+			adj.get(a).pushQ(new Edge<>(b, w));//add(edge1); //add edge
+			edge_length +=1;	
+		}
+		
+		if (!directed && !containsEdge(b, a)) { //undirected
+			adj.get(b).pushQ(new Edge<>(a, w));//add(edge1); //add edge
+			edge_length++;
+		}
 
 	}
 
@@ -105,6 +126,10 @@ public class Graph<T> {
 			if (a2 == neighbor.getNeighbor()){
 				a.remove(neighbor);
 				edge_length--;
+				if (!directed){
+					deleteEdge(a2, a1);
+				}
+				return;
 			}
 			root = root.getNext();
 		}
@@ -382,7 +407,7 @@ public class Graph<T> {
 					// update path
 					path.put(n_vertex, curr_vertex);
 					// insert to PQ
-					PQ.add(new_distance, n_vertex);
+					PQ.insert(new_distance, n_vertex);
 				}
 				root = root.getNext();
 			}
@@ -393,6 +418,7 @@ public class Graph<T> {
 		BTNode<Integer, MyLinearList<T>> ret;
 		T curr = target; 
 		if (path.containsKey(curr)){
+			return_path.pushS(target);
 			while (path.containsKey(curr)){
 				T next = path.get(curr);
 				return_path.pushS(next);
@@ -403,10 +429,187 @@ public class Graph<T> {
 		}
 		
 		// target is unreachable
-		ret = new BTNode(Integer.MAX_VALUE, return_path);
+		ret = new BTNode<>(Integer.MAX_VALUE, return_path);
 		return ret;
 	}
+
+	public pair<Graph<T>, Integer> MSTPrim(T src){
+		
+		Graph<T> return_type = new Graph<>(this.directed);
+
+		Map<T, Integer> visited = new HashMap<>();
+		
+
+		// make min priority queue
+		Heap<Integer, pair<T, T>> PQ = new Heap<>(vertex_length, true);		
+		
+		int cost = 0;
+		Node<Edge<T>> h = adj.get(src).head;
+		while (h != null){
+			PQ.insert(h.getData().getWeight(), new pair<>(src, h.getData().getNeighbor()));
+			h = h.getNext();
+		}
+		while(PQ.size() > 0){
+			BTNode<Integer, pair<T,T>> top = PQ.removeFirst();
+			Integer curr_dis = top.getKey();
+			T curr_vertex = top.getData().second;
+			T prev_vertex = top.getData().first;
+
+			return_type.addEdge(prev_vertex, curr_vertex, curr_dis);
+			if (return_type.containsCycle()){
+				return_type.deleteEdge(prev_vertex, curr_vertex);
+				continue;
+			}
+			else {
+				visited.put(curr_vertex, 1);
+				visited.put(prev_vertex, 1);
+				cost += curr_dis;
+			}
+			
+
+			// looping through the edges and verteces
+			Node<Edge<T>> root = adj.get(curr_vertex).head;
+			while (root != null){
+				Edge<T> edge = root.getData();
+				T n_vertex = edge.getNeighbor();
+				Integer n_weights = edge.getWeight();
+
+				if (visited.containsKey(curr_vertex) && !visited.containsKey(n_vertex)){
+					PQ.insert(n_weights, new pair<>(curr_vertex, n_vertex));
+				}
+
+				root = root.getNext();
+			}
+		}
+		return new pair<>(return_type, cost);
+	}
+
+	public boolean containsCycle(){
+		Map<T, Integer> visited = new HashMap<>();
+		for (T k : adj.keySet()){
+			Node<Edge<T>> head = adj.get(k).head;
+			while (head != null){
+				if (!visited.containsKey(k)){
+					if (_dfs(visited, k, null)){
+						return true;
+					}
+				}
+				head = head.getNext();
+			} 
+		}
+
+		return false;
+	}
+
+	private boolean _dfs(Map<T, Integer> visited, T curr, T parent){
+		visited.put(curr, 1);
+		Node<Edge<T>> k = adj.get(curr).head;
+
+		while(k != null){
+			T neigh = k.getData().getNeighbor();
+			if (!visited.containsKey(neigh)){
+				if (_dfs(visited, neigh, curr)){
+					return true;
+				}
+			}
+			// Objects.equals(neigh, b)
+			else if (!Objects.equals(neigh, parent)){
+				return true;
+			}
+			k = k.getNext();
+		}
+
+		return false;
+	}
+	
+
+	public pair<Graph<T>, Integer> MSTKruskal(T src){
+		Heap<Integer, pair<T, T>> PQ = new Heap<>(edge_length, false);
+		
+		// add all of the edge to PQ
+		for (T k : adj.keySet()){
+			MyLinearList<Edge<T>> curr = adj.get(k);
+			if (curr != null){
+				Node<Edge<T>> head = curr.head;
+				while (head != null){
+					Edge<T> edge = head.getData();
+					T n_vertex = edge.getNeighbor();
+					Integer n_weights = edge.getWeight();
+					PQ.add(n_weights, new pair<>(k, n_vertex));
+					head = head.getNext();
+				}
+			}
+		}
+		// sort PQ o(nlogn)
+		PQ.sort();
+		MyArrayList<BTNode<Integer, pair<T,T>>> n = PQ.getArray();
+		// n.cetakList();
+		
+		int cost = 0;
+		Graph<T> ret_graph = new Graph<>(this.directed);
+		
+		// iterate through the array o(n)
+		for (int i = 0; i < n.size(); i++){
+			BTNode<Integer, pair<T,T>> k = n.get(i);
+
+			T neighbor = k.getData().second;
+			T curr = k.getData().first;
+			Integer weights = k.getKey();
+			
+			// add edge
+			ret_graph.addEdge(curr, neighbor, weights);
+			// check if there exist a cycle
+			// o(n) to check
+			if (ret_graph.containsCycle()){
+				ret_graph.deleteEdge(curr, neighbor);
+			}
+
+		}
+
+		// o(n^2) thus the loop
+
+
+		// another bfs o(n)
+		MyLinearList<T> q = new MyLinearList<>();
+		Map<T, Integer> visit = new HashMap<>();
+		q.pushQ(src);
+		visit.put(src, 1);
+		while(!q.isEmpty()){
+			T curr = q.remove();
+			Node<Edge<T>> h = ret_graph.adj.get(curr).head;
+			while (h != null){
+				Edge<T> e = h.getData();
+				if (!visit.containsKey(e.getNeighbor())){
+					cost += e.getWeight();
+					visit.put(e.getNeighbor(), 1);
+					q.pushQ(e.getNeighbor());
+				}
+				h = h.getNext();
+			}
+		}
+		
+		// the total complexity is o(n^2) :(
+		return new pair<>(ret_graph, cost);
+	}	
 
 }
 
 
+class pair<T,V> {
+	public T first;
+	public V second;
+	public pair(T pair1, V pair2){
+		this.first = pair1;
+		this.second = pair2;
+	}
+
+	@Override
+	public String toString(){
+		return "(" + first.toString() + ", " + second.toString() + ")";
+	}
+
+	// @Override
+	public boolean equals(pair<T,V> a){
+		return a.first.equals(this.first) && a.second.equals(this.second);
+	}
+}
