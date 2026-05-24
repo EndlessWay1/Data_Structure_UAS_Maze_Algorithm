@@ -83,4 +83,11 @@ public class MazeFrame extends JFrame{
 	public MazeFrame(int row, int col) {
 		this(row, col, "");
 	}
+
+
+
+	public MazeMaker getMazeMaker() {
+		// TODO Auto-generated method stub
+		return mazeMaker;
+	}
 }

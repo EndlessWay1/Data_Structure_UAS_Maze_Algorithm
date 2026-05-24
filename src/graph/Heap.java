@@ -11,6 +11,10 @@ public class Heap<K extends Comparable<? super K>,V> {
         arrList = new MyArrayList<BTNode<K,V>>(capacity);
         this.priority = priority;
     }
+    
+    public MyArrayList<BTNode<K,V>> getArray(){
+        return arrList;
+    }
 
     //mengembalikan jumlah elemen di heap
     public int size() {
@@ -63,22 +67,22 @@ public class Heap<K extends Comparable<? super K>,V> {
     }
     //heapsort
     public void sort() {
-    int size = arrList.size();
+        int size = arrList.size();
 
-    // build heapSort (rearrange array)
-    buildHeap();
+        // build heapSort (rearrange array)
+        buildHeap();
 
-    // one by one extract an element from heapSort
-        for (int i = size - 1; i >= 0; i--){
-            // swap current root node to rightmost leaf node
-            BTNode<K,V> temp = arrList.get(0);
-            arrList.set(0, arrList.get(i));
-            arrList.set(i, temp);
+        // one by one extract an element from heapSort
+            for (int i = size - 1; i >= 0; i--){
+                // swap current root node to rightmost leaf node
+                BTNode<K,V> temp = arrList.get(0);
+                arrList.set(0, arrList.get(i));
+                arrList.set(i, temp);
 
-            // call max or min heapify on the reduced heap
-            if(priority) heapifyMin(i, 0);
-            else heapifyMax(i, 0);
-        }
+                // call max or min heapify on the reduced heap
+                if(priority) heapifyMin(i, 0);
+                else heapifyMax(i, 0);
+            }
     }
     // to max heapify a subtree rooted at node i
     void heapifyMax(int size, int i)
@@ -273,20 +277,3 @@ class MyArrayList <T> {
     }
 }
 
-class BTNode<K, V> {
-    private K key;
-    private V data;
-
-    public BTNode(K key, V data) {
-        this.key = key;
-        this.data = data;
-    }
-
-    public K getKey() {
-        return key;
-    }
-
-    public V getData() {
-        return data;
-    }
-}
