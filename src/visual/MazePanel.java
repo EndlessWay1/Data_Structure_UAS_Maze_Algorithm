@@ -16,6 +16,8 @@ import javax.swing.border.MatteBorder;
 import MazeGeneratorCath.Block;
 import MazeGeneratorCath.MazeMaker;
 import graph.Graph;
+import graph.MyLinearList;
+import graph.Node;
 
 public class MazePanel extends JPanel{
 	MazeMaker mazeMaker;
@@ -23,9 +25,16 @@ public class MazePanel extends JPanel{
 	Color bgColor = Color.black;
 	int rows;
 	int cols;
+	int visited = 0;
+	
+	MyLinearList<Integer> path;
 	
 	public MazeMaker getMazeMaker() {
 		return mazeMaker;
+	}
+	
+	public void setPath(MyLinearList<Integer> path) {
+		this.path = path;
 	}
 
 	int borderSize =  1;
@@ -40,11 +49,14 @@ public class MazePanel extends JPanel{
 		this.borderSize = borderSize;
 		this.bgColor = bgColor;
 		
+		
 		this.setPreferredSize(new Dimension(750, 650));
 		this.setBackground(bgColor);
 		this.mazeMaker = mazeMaker;
 		rows = mazeMaker.getRows(); 
 		cols = mazeMaker.getCols();
+		
+		
 		
 //		panels = new JPanel[rows][cols];
 //	
@@ -89,17 +101,22 @@ public class MazePanel extends JPanel{
 //			}
 //		}
 //	}
+	
+	public void redraw(int step) {
+		visited = step;
+		repaint();
+	}
+	
 	@Override
 	public void paintComponent(Graphics g) {
 		super.paintComponent(g);
 		
 		Graphics2D g2d = (Graphics2D) g;
-		
-		g2d.setPaint(Color.red);
+
+		g2d.setPaint(Color.blue);
 		g2d.setStroke(new BasicStroke(borderSize));
 		
-		
-	    int cellSize = Math.max(1, Math.min(
+		int cellSize = Math.max(1, Math.min(
 	            getWidth() / cols,
 	            getHeight() / rows
 	        ));
@@ -109,9 +126,61 @@ public class MazePanel extends JPanel{
 
 	    int offsetX = (getWidth() - mazeWidth) / 2;
 	    int offsetY = (getHeight() - mazeHeight) / 2;
+
+		
+		g2d.fillRect(offsetX + (cols - 1)*cellSize, offsetY + (rows - 1)*cellSize, cellSize, cellSize);
+	    
 	    
 	    g2d.fillRect(offsetX, offsetY, cellSize, cellSize);
-	    g2d.fillRect(offsetX + (cols - 1)*cellSize, offsetY + (rows - 1)*cellSize, cellSize, cellSize);
+	    
+		
+		
+		g2d.setPaint(Color.red);
+		
+		
+		
+	    
+	    
+	    
+	    if (path != null) {	    	
+	    	Node<Integer> head =  path.head;
+	    	int curr = 1;
+	    	int p_r = 0;
+	    	int p_c = 0;
+	    	while (curr < this.visited + 1 && head != null) {
+	    		
+	    		
+	    		int idx = head.getData();
+	    		int c_r = idx / cols;
+	    		int c_c = idx % cols;
+	    		
+	    		// if we go up or left
+	    		if (c_r < p_r || c_c < p_c) {
+	    			g2d.fillRect(
+	    				    offsetX + c_c*cellSize,
+	    				    offsetY + c_r*cellSize,
+	    				    cellSize * (p_c - c_c + 1),
+	    				    cellSize * (p_r - c_r + 1)
+	    				);
+	    		}
+	    		// if we go down or right	    	
+	    		else {
+	    			g2d.fillRect(
+	    				    offsetX + p_c*cellSize,
+	    				    offsetY + p_r*cellSize,
+	    				    cellSize * (c_c - p_c + 1),
+	    				    cellSize * (c_r - p_r + 1)
+	    				);
+	    		}
+	    		
+	    		p_c = c_c;
+	    		p_r = c_r;
+	    		
+	    		curr++;
+	    		head = head.getNext();
+	    	}
+	    }
+	    
 	    
 	    
 		g2d.setPaint(borderColor);
@@ -164,4 +233,6 @@ public class MazePanel extends JPanel{
             
         }
 	}
+	
+	
 }
