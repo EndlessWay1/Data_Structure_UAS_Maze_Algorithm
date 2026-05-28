@@ -361,10 +361,62 @@ public class Graph<T> {
 
 
 
-	public BTNode<Integer,MyLinearList<T>> dijkstra(T src, T target){
+	private BTNode<Integer, MyLinearList<T>> dijkstra(T src, T target){
+		Report<T> sReport = dijkstraReport(src, target);
+		return new BTNode<>(sReport.getCost(), sReport.getPath());
+	}
+		
+	
+
+	// Membuat path dari target kembali ke source 
+	private MyLinearList<T> makePath(Map<T, T> path, T src, T target){
+		
+		MyLinearList<T> result = new MyLinearList<>(); // list untuk menyimpan path akhir
+		// kalau source dan target sama, berarti kita sudah sampai tujuan, return list dengan source
+		if ( Objects.equals(src, target)) {
+			result.pushQ(src);
+			return result;
+		}
+		// kalau target tidak punya parent, berarti tidak ada path
+		if (!path.containsKey(target)) {
+			return result;
+		}
+		// mulai backtraking dari target ke source
+		T curr = target;
+		result.pushS(curr); // masukan target ke list
+		while (path.containsKey(curr)) { // selama curr masih punya parent
+			curr = path.get(curr); // ambil parent dari node saat ini
+			result.pushS(curr); // masukkan ke depan path
+		}
+		return result;
+	}
+
+	// Manhattan distance
+	// A* Algorithm ( Heuristic + Dijkstra)
+	private int heuristic( T curr, T target, int cols) {
+		if (!(curr instanceof Integer) || !(target instanceof Integer)) {
+			return 0; // sistemnya kalau bukan integer, kita anggap heuristicnya 0, soalnya vertex maze kita tipenya integer
+		} 
+		// ubah generic T ke integer
+		int currNode = (Integer) curr;
+		int targetNode = (Integer) target;
+		// manhattan distance
+		int currRow = currNode / cols; // ini mencari row dan col current
+		int currCol = currNode % cols; // ini mencari row dan col current
+		int targetRow = targetNode / cols; // ini mencari row dan col target
+		int targetCol = targetNode % cols; // ini mencari row dan col target
+		return Math.abs(currRow - targetRow) + Math.abs(currCol - targetCol);
+	}
+
+	// Dijkstra ( Output berupa cost, path, visited node, time)
+	public Report<T> dijkstraReport(T src, T target) {
+		
+		long startTime = System.nanoTime();
 		
 		// map distance, such that when its unreacable, we know
 		Map<T, Integer> distance = new HashMap<>();
+		
+		Map<T, Integer> visitedMap = new HashMap<>();
 
 		// writing the path history
 		Map<T, T> path = new HashMap<>();
@@ -380,12 +432,18 @@ public class Graph<T> {
 			BTNode<Integer, T> top = PQ.removeFirst();
 			Integer curr_dis = top.getKey();
 			T curr_vertex = top.getData();
-
-			// if the distance is more than we need, it means there exist 
-			// another path that has less cost than the current path 
-			if (curr_dis > distance.get(curr_vertex)){
+			
+			if (visitedMap.containsKey(curr_vertex)) {
 				continue;
 			}
+			
+			visitedMap.put(curr_vertex, 1);
+			
+			// if the pop item is the same as target, we can safely assume, we got the correct path
+			if (Objects.equals(curr_vertex, target)) {
+				break;
+			}
+			
 
 			// looping through the edges and verteces
 			Node<Edge<T>> root = adj.get(curr_vertex).head;
@@ -426,138 +484,27 @@ public class Graph<T> {
 				return_path.pushS(next);
 				curr = next;
 			}
-			ret = new BTNode<>(distance.get(target), return_path);
-			return ret;
 		}
+
+		long endTime = System.nanoTime() - startTime;
 		
-		// target is unreachable
-		ret = new BTNode<>(Integer.MAX_VALUE, return_path);
-		return ret;
-	}
-
-	// Membuat path dari target kembali ke source 
-	private MyLinearList<T> makePath(Map<T, T> path, T src, T target){
 		
-		MyLinearList<T> result = new MyLinearList<>(); // list untuk menyimpan path akhir
-		// kalau source dan target sama, berarti kita sudah sampai tujuan, return list dengan source
-		if ( Objects.equals(src, target)) {
-			result.pushQ(src);
-			return result;
-		}
-		// kalau target tidak punya parent, berarti tidak ada path
-		if (!path.containsKey(target)) {
-			return result;
-		}
-		// mulai backtraking dari target ke source
-		T curr = target;
-		result.pushS(curr); // masukan target ke list
-		while (path.containsKey(curr)) { // selama curr masih punya parent
-			curr = path.get(curr); // ambil parent dari node saat ini
-			result.pushS(curr); // masukkan ke depan path
-		}
-		return result;
+		return new Report<>(
+				visitedMap.size(), 
+				(distance.containsKey(curr))?distance.get(target):Integer.MAX_VALUE, 
+				endTime, 
+				return_path);
 	}
-
-	// A* Algorithm ( Heuristic + Dijkstra)
-	private int heuristic( T curr, T target, int cols) {
-		if (!(curr instanceof Integer) || !(target instanceof Integer)) {
-			return 0; // sistemnya kalau bukan integer, kita anggap heuristicnya 0, soalnya vertex maze kita tipenya integer
-		} 
-		// ubah generic T ke integer
-		int currNode = (Integer) curr;
-		int targetNode = (Integer) target;
-		// manhattan distance
-		int currRow = currNode / cols; // ini mencari row dan col current
-		int currCol = currNode % cols; // ini mencari row dan col current
-		int targetRow = targetNode / cols; // ini mencari row dan col target
-		int targetCol = targetNode % cols; // ini mencari row dan col target
-		return Math.abs(currRow - targetRow) + Math.abs(currCol - targetCol);
-	}
-
-	// Dijkstra ( Output berupa cost, path, visited node, time )
-	public BTNode<Integer, MyLinearList<T>> dijkstraReport(T src, T target ) {
-		// catat waktu mulai
-		long startTime = System.nanoTime();
-		// Simpan jarak terpendek dari src ke setiap vertex
-		Map<T, Integer> distance = new HashMap<>();
-		// Simpan parent untuk membentuk path
-		Map<T, T> path = new HashMap<>();
-		// Simpan vertex yang sudah diproses
-		Map<T, Integer> visited = new HashMap<>();
-		// counter jumlah vertex yang sudah dikunjungi
-		int visitedCount = 0;
-		// Min Priority Queue ( capacity dibuat lebih besar karena node bisa masuk PQ lebih dari sekali )
-		Heap<Integer, T> PQ = new Heap<>(edge_length + vertex_length + 10, true);
-		// Jarak source ke dirinya sendiri adalah 0
-		distance.put(src, 0);
-		// Masukan source ke PQ
-		PQ.insert(0, src);
-		// Selama PQ belum kosong
-		while (PQ.size() > 0) {
-			BTNode<Integer, T> top = PQ.removeFirst(); // Ambil vertex dengan jarak terkecil
-			Integer curr_dis = top.getKey(); // jarak current dari source
-			T curr_vertex = top.getData(); // vertex sekarang
-			// Jika vertex sudah diproses maka dilewati
-			if (visited.containsKey(curr_vertex)) {
-				continue;
-			}
-			// Tandai vertex sebagai sudah diproses
-			visited.put(curr_vertex, 1);
-			// Tandai jumlah visited node
-			visitedCount++;
-			// kalau sudah sampai target, berhenti
-			if (Objects.equals(curr_vertex, target)) {
-				break;
-			}
-			// ambil adjacency list dari vertex sekarang
-			MyLinearList<Edge<T>> list = adj.get(curr_vertex);
-			if ( list == null){ // kalau tidak punya tetangga, lanjut
-				continue;
-			}
-			Node<Edge<T>> root = list.head; // iterasi tetangga
-			while ( root != null ) {
-				Edge<T> edge = root.getData(); // ambil edge
-				T n_vertex = edge.getNeighbor(); // vertex tetangga
-				Integer n_weights = edge.getWeight(); // bobot edge
-				Integer new_distance = curr_dis + n_weights; // jarak baru = jarak current + bobot edge
-				// jika tetangga belum punya distance atau jarak yang lebih pendek
-				if ( !distance.containsKey(n_vertex) || distance.get(n_vertex) > new_distance ) {
-					distance.put(n_vertex, new_distance); // update distance
-					path.put(n_vertex, curr_vertex); // update path
-					PQ.insert(new_distance, n_vertex); // masukan ke PQ 
-				}
-				// lanjut edge berikutnya
-				root = root.getNext();
-			}
-		}
-		// buat path akhir
-		MyLinearList<T>return_path = makePath(path, src, target);
-		// ambil cost akhir
-		Integer cost;
-		// kalau target ditemukan
-		if ( distance.containsKey(target)) {
-			cost = distance.get(target);
-		}
-		// kalau ga ketemu
-		else {
-			cost = Integer.MAX_VALUE;
-		}
-		// catat waktu selesai
-		long endTime = System.nanoTime();
-		// hitung durasi
-		double duration = (endTime - startTime) / 1000000.0; // dalam milisekon
-		// print hasil
-		System.out.println("Dijkstra");
-		System.out.println("Cost : " + cost);
-		System.out.println("Visited Nodes : " + visitedCount);
-		System.out.println("Time : " + duration + " ms");
-		System.out.println("Path :");
-		return_path.cetakList();
-		return new BTNode<>(cost, return_path);
+		
+	public BTNode<Integer, MyLinearList<T>> aStar(T src, T target, int cols){
+		
+		Report<T> report = aStarReport(src, target, cols);
+		
+		return new BTNode<>(report.getCost(), report.getPath());
 	}
 	
 	// A* ( Output sama dengan dijkstra)
-	public BTNode<Integer, MyLinearList<T>> aStarReport (T src, T target, int cols) {
+	public Report<T> aStarReport (T src, T target, int cols) {
 		// catat waktu mulai
 		long startTime = System.nanoTime();
 		// gScore menyimpan jarak asli dari src ke vertex
@@ -566,16 +513,15 @@ public class Graph<T> {
 		Map<T, T> path = new HashMap<>();
 		// Simpan vertex yang sudah diproses
 		Map<T, Integer> visited = new HashMap<>();
-		// counter jumlah vertex yang sudah dikunjungi
-		int visitedCount = 0;
+		
 		// Min Priority Queue ( capacity dibuat lebih besar karena node bisa masuk PQ lebih dari sekali )
-		Heap<Integer, T> PQ = new Heap<>(edge_length + vertex_length + 10, true);
+		Heap<Integer, T> PQ = new Heap<>(edge_length, true);
 		// Jarak source ke dirinya sendiri adalah 0
 		gScore.put(src, 0);
 		// fScore source = gScore + heuristic
-		int startF = heuristic(src, target, cols);
+		int h = heuristic(src, target, cols);
 		// Masukan source ke PQ dengan priority 
-		PQ.insert(startF, src);
+		PQ.insert(h, src);
 		while (PQ.size() > 0) {
 			BTNode<Integer, T> top = PQ.removeFirst(); // Ambil vertex dengan fScore terkecil
 			T curr_vertex = top.getData(); // vertex sekarang
@@ -583,17 +529,13 @@ public class Graph<T> {
 				continue;
 			}
 			visited.put(curr_vertex, 1);// tandai sudah diproses
-			visitedCount++; // tambah jumlah visited node
+
 			// kalau sudah sampai target, berhenti
 			if (Objects.equals(curr_vertex, target)) {
 				break;
 			}
 			// ambil adjacency list vertex sekarang
 			MyLinearList<Edge<T>> list = adj.get(curr_vertex);
-			// lanjut kalau tidak punya tetangga
-			if ( list == null){
-				continue;
-			}
 			// ambil gScore current
 			int curr_g = gScore.get(curr_vertex);
 			// iterasi tetangga
@@ -607,9 +549,9 @@ public class Graph<T> {
 				if ( !gScore.containsKey(n_vertex) || gScore.get(n_vertex) > new_g ) {
 					gScore.put(n_vertex, new_g); // update gScore
 					path.put(n_vertex, curr_vertex); // simpan parent
-					int h = heuristic(n_vertex, target, cols); // hitung heuristic tetangga ke target
-					int f = new_g + h; // fScore = gScore + heuristic
-					PQ.insert(f, n_vertex);
+					h = heuristic(n_vertex, target, cols); // hitung heuristic tetangga ke target
+					// fScore = gScore + heuristic
+					PQ.insert(new_g + h, n_vertex);
 				}
 				// lanjut edge berikutnya
 				root = root.getNext();
@@ -619,27 +561,13 @@ public class Graph<T> {
 		// buat path akhir
 		MyLinearList<T>return_path = makePath(path, src, target);
 		// ambil cost akhir
-		Integer cost;
-		// kalau target ditemukan
-		if ( gScore.containsKey(target)) {
-			cost = gScore.get(target);
-		}
-		// kalau ga ketemu
-		else {
-			cost = Integer.MAX_VALUE;
-		}
-		// catat waktu selesai
-		long endTime = System.nanoTime();
+		Integer cost = (gScore.containsKey(target))? gScore.get(target): Integer.MAX_VALUE;
+		
 		// hitung durasi
-		double duration = (endTime - startTime) / 1000000.0; // dalam milisekon
-		// print hasil
-		System.out.println("A*");
-		System.out.println("Cost : " + cost);
-		System.out.println("Visited Nodes : " + visitedCount);
-		System.out.println("Time : " + duration + " ms");
-		System.out.println("Path :");
-		return_path.cetakList();
-		return new BTNode<>(cost, return_path);
+		long duration = (System.nanoTime() - startTime);
+		
+		return new Report<T>(visited.size(), cost, duration, return_path);
+
 	}
 	
 	public pair<Graph<T>, Integer> MSTPrim(T src){
@@ -804,21 +732,3 @@ public class Graph<T> {
 }
 
 
-class pair<T,V> {
-	public T first;
-	public V second;
-	public pair(T pair1, V pair2){
-		this.first = pair1;
-		this.second = pair2;
-	}
-
-	@Override
-	public String toString(){
-		return "(" + first.toString() + ", " + second.toString() + ")";
-	}
-
-	// @Override
-	public boolean equals(pair<T,V> a){
-		return a.first.equals(this.first) && a.second.equals(this.second);
-	}
-}

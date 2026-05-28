@@ -65,7 +65,6 @@ public class MazeMaker{
 
             // maze generation is complete when there are no more blocks to backtrack to
             else {
-                System.out.println("Maze Finished!");
                 break;
             }
         }
@@ -165,10 +164,7 @@ public class MazeMaker{
                 }
             }
         }
- 
-        System.out.println("IsGone: ");
-        System.out.println(Arrays.deepToString(isGone));
-        
+
 
         Map<Integer, MazeNode> g = new HashMap<>();
 
@@ -310,22 +306,18 @@ public class MazeMaker{
         boolean[] walls = blocks[i][j].getWalls();
         if (!walls[0]){
             // top
-        	System.out.println("Top");
             DFS(i - 1, j, visited, isGone, curr_node,  1, g);
         }
         if (!walls[2]){
             // bottom
-        	System.out.println("Bottom");
             DFS(i + 1, j, visited, isGone, curr_node,  3, g);
         }
         if (!walls[1]){
-        	System.out.println("Right");
             // right
             DFS(i, j + 1, visited, isGone, curr_node,  2, g);
         }
         if (!walls[3]){
             // left
-        	System.out.println("Left");
             DFS(i, j - 1, visited, isGone, curr_node,  4, g);
         }
 
