@@ -34,7 +34,7 @@ public class MazeFrame extends JFrame implements ActionListener{
 	JButton aButton;
 	JButton cButton;
 	
-	double Convertion = 1E-6;
+	double Convertion = 1E-3;
 
 	public MazeFrame(int row, int col, String title) {
 
@@ -49,7 +49,8 @@ public class MazeFrame extends JFrame implements ActionListener{
 	    mazeMaker = new MazeMaker(row, col);
 	    
 	    Graph<Integer> mGraph = mazeMaker.toGraph();
-	    
+	    System.out.println("Vertex: " + mGraph.getVLength());
+	    System.out.println("Edge: " + mGraph.getELength());
 	    
 	    dijkstraReport = mGraph.dijkstraReport(0, row*col - 1);
 	    aStarReport = mGraph.aStarReport(0, row*col - 1, col);
@@ -64,7 +65,7 @@ public class MazeFrame extends JFrame implements ActionListener{
 	    JLabel label = new JLabel("Maze " + Integer.toString(row) + " x " +  Integer.toString(col));
 	    Font font_used = new Font("Consolas", Font.PLAIN, 20);
 	   
-	    JLabel ket = new JLabel("1 s = 1 s");
+	    JLabel ket = new JLabel("1 s = 1 ms");
 	    ket.setHorizontalAlignment(JLabel.CENTER);
 	    ket.setPreferredSize(new Dimension(200,100));
 	    ket.setFont(new Font("Consolas", Font.PLAIN, 16));
@@ -187,9 +188,9 @@ public class MazeFrame extends JFrame implements ActionListener{
 			MyLinearList<Integer> path = dijkstraReport.getPath();
 			int lengths = path.length;
 			
-			int delay = Math.max(10,
-	                (int)(dijkstraReport.getTime()*Convertion / dijkstraReport.getNodeVisited()));
+			int delay = (int)(dijkstraReport.getTime()*Convertion / dijkstraReport.getNodeVisited());
 
+			System.out.println("Dijkstra Delay: " + delay);
 			mazePanel.setPath(path);
 			
 			Timer timer = new Timer(delay, null);
@@ -216,8 +217,8 @@ public class MazeFrame extends JFrame implements ActionListener{
 			MyLinearList<Integer> path = aStarReport.getPath();
 			int lengths = path.length;
 			
-			int delay = Math.max(10,
-					(int)(aStarReport.getTime()*Convertion / aStarReport.getNodeVisited()));
+			int delay = (int)(aStarReport.getTime()*Convertion / aStarReport.getNodeVisited());
+			System.out.println("A* Delay: " + delay);
 			
 			mazePanel.setPath(path);
 			
