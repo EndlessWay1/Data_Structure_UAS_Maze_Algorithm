@@ -146,6 +146,22 @@ public class MazeMaker{
 	}
 
     public Graph<Integer> toGraph(){
+
+        Map<Integer, MazeNode> g = toMap();
+        
+        Graph<Integer> retGraph = new Graph<>(false); // set as bidirectional graph
+        
+        
+        Map<Integer, Integer> visited_m = new HashMap<>();
+        
+        DFS_map_toGraph(g, retGraph, visited_m, 0);
+
+        
+        return retGraph;
+        
+    }
+    
+    public Map<Integer, MazeNode> toMap(){
         boolean[][] visited = new boolean[rows][cols];
         boolean[][] isGone = new boolean[rows][cols];
         
@@ -170,20 +186,10 @@ public class MazeMaker{
 
    
         DFS(0, 0, visited, isGone, null, 0, g);
-        
-        Graph<Integer> retGraph = new Graph<>(false); // set as bidirectional graph
-        
-        
-        Map<Integer, Integer> visited_m = new HashMap<>();
-        
-        
-        
-        DFS_map_toGraph(g, retGraph, visited_m, 0);
 
-        
-        return retGraph;
-        
+        return g;
     }
+    
     
     private void DFS_map_toGraph(
     		Map<Integer, MazeNode> m, Graph<Integer> g, 

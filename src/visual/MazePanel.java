@@ -7,7 +7,9 @@ import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.GridLayout;
 import java.nio.channels.NonWritableChannelException;
+import java.util.HashMap;
 import java.util.Iterator;
+import java.util.Map;
 
 import javax.swing.JPanel;
 import javax.swing.border.Border;
@@ -15,6 +17,7 @@ import javax.swing.border.MatteBorder;
 
 import MazeGeneratorCath.Block;
 import MazeGeneratorCath.MazeMaker;
+import MazeGeneratorCath.MazeNode;
 import graph.Graph;
 import graph.MyLinearList;
 import graph.Node;
@@ -27,7 +30,18 @@ public class MazePanel extends JPanel{
 	int cols;
 	int visited = 0;
 	
+	boolean vertexs = false;
+	Map<Integer, MazeNode> graph;
+	
 	MyLinearList<Integer> path;
+	int cellSize;
+    
+    int mazeWidth;
+    int mazeHeight;
+
+    int offsetX;
+    int offsetY;
+
 	
 	public MazeMaker getMazeMaker() {
 		return mazeMaker;
@@ -36,6 +50,12 @@ public class MazePanel extends JPanel{
 	public void setPath(MyLinearList<Integer> path) {
 		this.path = path;
 	}
+
+	public void setVertex(boolean on) {
+		this.vertexs = on;
+	}
+
+	
 
 	int borderSize =  1;
 	
@@ -53,58 +73,56 @@ public class MazePanel extends JPanel{
 		this.setPreferredSize(new Dimension(750, 650));
 		this.setBackground(bgColor);
 		this.mazeMaker = mazeMaker;
+		this.graph = mazeMaker.toMap();
+	
 		rows = mazeMaker.getRows(); 
 		cols = mazeMaker.getCols();
 		
-		
-		
-//		panels = new JPanel[rows][cols];
-//	
-////		adding panels to array
-//		for (int i = 0; i < rows; i++) {
-//			for (int j = 0; j < cols; j++) {
-//				panels[i][j] = new JPanel();
-//			}
-//		}
-		
-//		this.setLayout(new GridLayout(rows, cols));
-//		drawBorder();
-		
-////		adding panels to this
-//		for (int i = 0; i < rows; i++) {
-//			for (int j = 0; j < cols; j++) {
-//				this.add(panels[i][j]);
-//			}
-//		}
 	}
-	
-//	private void drawBorder() {
-////		TODO 
-//		Block[][] b =  mazeMaker.getBlocks();
-//		
-//		
-//		// Iterate one by one
-//		for (int i = 0; i < rows; i++) {
-//			for (int j = 0; j < cols; j++) {
-//				// get current blocks
-//				Block currBlock = b[i][j];
-//				JPanel currPanel = panels[i][j];
-//				// top, right, bottom, left
-//				boolean[] walls = currBlock.getWalls();
-//				int t = (walls[0])? borderSize : 0;
-//				int r = (walls[1])? borderSize : 0;
-//				int d = (walls[2])? borderSize : 0;
-//				int l = (walls[3])? borderSize : 0;
-//				currPanel.setBorder(new MatteBorder(t,l,d,r, borderColor));
-//				currPanel.setOpaque(true);
-//				currPanel.setBackground(bgColor);
-//			}
-//		}
-//	}
 	
 	public void redraw(int step) {
 		visited = step;
 		repaint();
+	}
+
+
+	private void DFS_draw_map(Map<Integer, Integer> visited, int start, Graphics2D g2d) {
+	    if (visited.containsKey(start)) return;
+
+	    visited.put(start, 1);
+	    MazeNode s = graph.get(start);
+
+	    int x1 = offsetX + cellSize/2 + (start % cols) * cellSize;
+	    int y1 = offsetY + cellSize/2 + (start / cols) * cellSize;
+
+	    // draw node
+	    g2d.fillOval(x1 - cellSize/4, y1 - cellSize/4,
+	                 cellSize/2, cellSize/2);
+
+	    for (int i = 0; i < 4; i++) {
+	        int cord = s.cords[i];
+
+	        if (cord != -1) {
+	            int x2 = offsetX + cellSize/2 + (cord % cols) * cellSize;
+	            int y2 = offsetY + cellSize/2 + (cord / cols) * cellSize;
+
+	            g2d.drawLine(x1, y1, x2, y2);
+	            DFS_draw_map(visited, cord, g2d);
+	        }
+	    }
+	}	 
+	private void setSizes() {
+		cellSize = Math.max(1, Math.min(
+	            getWidth() / cols,
+	            getHeight() / rows
+	        ));
+	    
+	    mazeWidth = cellSize * cols;
+	    mazeHeight = cellSize * rows;
+
+	    offsetX = (getWidth() - mazeWidth) / 2;
+	    offsetY = (getHeight() - mazeHeight) / 2;
+
 	}
 	
 	@Override
@@ -116,17 +134,7 @@ public class MazePanel extends JPanel{
 		g2d.setPaint(Color.blue);
 		g2d.setStroke(new BasicStroke(borderSize));
 		
-		int cellSize = Math.max(1, Math.min(
-	            getWidth() / cols,
-	            getHeight() / rows
-	        ));
-	    
-	    int mazeWidth = cellSize * cols;
-	    int mazeHeight = cellSize * rows;
-
-	    int offsetX = (getWidth() - mazeWidth) / 2;
-	    int offsetY = (getHeight() - mazeHeight) / 2;
-
+		setSizes();
 		
 		g2d.fillRect(offsetX + (cols - 1)*cellSize, offsetY + (rows - 1)*cellSize, cellSize, cellSize);
 	    
@@ -139,9 +147,6 @@ public class MazePanel extends JPanel{
 		
 		
 		
-	    
-	    
-	    
 	    if (path != null) {	    	
 	    	Node<Integer> head =  path.head;
 	    	int curr = 1;
@@ -181,8 +186,11 @@ public class MazePanel extends JPanel{
 	    	}
 	    }
 	    
-	    
-	    
+	    if (vertexs) {	    	
+	    	g2d.setPaint(Color.CYAN);
+	    	Map<Integer, Integer> visitedMap = new HashMap<>();
+	    	DFS_draw_map(visitedMap, 0, g2d);
+	    }
 		g2d.setPaint(borderColor);
 		g2d.setStroke(new BasicStroke(borderSize));
 

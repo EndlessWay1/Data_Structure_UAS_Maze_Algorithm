@@ -33,8 +33,13 @@ public class MazeFrame extends JFrame implements ActionListener{
 	JButton dButton;
 	JButton aButton;
 	JButton cButton;
+	JButton vButton;
+	int vertex;
 	
-	double Convertion = 1E-6;
+	int path_length = 0;
+	boolean ispath = false;
+	
+	double Convertion = 1E-3;
 
 	public MazeFrame(int row, int col, String title) {
 
@@ -49,7 +54,8 @@ public class MazeFrame extends JFrame implements ActionListener{
 	    mazeMaker = new MazeMaker(row, col);
 	    
 	    Graph<Integer> mGraph = mazeMaker.toGraph();
-	    
+	    System.out.println("Vertex: " + mGraph.getVLength());
+	    System.out.println("Edge: " + mGraph.getELength());
 	    
 	    dijkstraReport = mGraph.dijkstraReport(0, row*col - 1);
 	    aStarReport = mGraph.aStarReport(0, row*col - 1, col);
@@ -64,7 +70,7 @@ public class MazeFrame extends JFrame implements ActionListener{
 	    JLabel label = new JLabel("Maze " + Integer.toString(row) + " x " +  Integer.toString(col));
 	    Font font_used = new Font("Consolas", Font.PLAIN, 20);
 	   
-	    JLabel ket = new JLabel("1 s = 1 s");
+	    JLabel ket = new JLabel("1 s = 1 ms");
 	    ket.setHorizontalAlignment(JLabel.CENTER);
 	    ket.setPreferredSize(new Dimension(200,100));
 	    ket.setFont(new Font("Consolas", Font.PLAIN, 16));
@@ -116,10 +122,20 @@ public class MazeFrame extends JFrame implements ActionListener{
 	    Cbutton.addActionListener(this);
 	    
 	    cButton = Cbutton;
+	    
+	    JButton Vbutton = new JButton("Vertex On");
+	    Vbutton.setOpaque(true);
+	    Vbutton.setFocusable(false);
+	    Vbutton.setFont(font_used);
+	    Vbutton.setSize(50, 25);
+	    Vbutton.addActionListener(this);
+	    
+	    vButton = Vbutton;
 
 	    buttonsJPanel.add(Cbutton);
 	    buttonsJPanel.add(Abutton);
 	    buttonsJPanel.add(Dbutton);
+	    buttonsJPanel.add(Vbutton);
 	    
 	    topPanel.add(label);
 	    topPanel.add(buttonsJPanel);
@@ -187,9 +203,9 @@ public class MazeFrame extends JFrame implements ActionListener{
 			MyLinearList<Integer> path = dijkstraReport.getPath();
 			int lengths = path.length;
 			
-			int delay = Math.max(10,
-	                (int)(dijkstraReport.getTime()*Convertion / dijkstraReport.getNodeVisited()));
+			int delay = (int)(dijkstraReport.getTime()*Convertion / dijkstraReport.getNodeVisited());
 
+			System.out.println("Dijkstra Delay: " + delay);
 			mazePanel.setPath(path);
 			
 			Timer timer = new Timer(delay, null);
@@ -209,6 +225,8 @@ public class MazeFrame extends JFrame implements ActionListener{
 	        });
 
 	        timer.start();
+	        path_length = lengths;
+			ispath = true;
 		}
 		
 		if (e.getSource() == aButton) {
@@ -216,8 +234,8 @@ public class MazeFrame extends JFrame implements ActionListener{
 			MyLinearList<Integer> path = aStarReport.getPath();
 			int lengths = path.length;
 			
-			int delay = Math.max(10,
-					(int)(aStarReport.getTime()*Convertion / aStarReport.getNodeVisited()));
+			int delay = (int)(aStarReport.getTime()*Convertion / aStarReport.getNodeVisited());
+			System.out.println("A* Delay: " + delay);
 			
 			mazePanel.setPath(path);
 			
@@ -238,10 +256,26 @@ public class MazeFrame extends JFrame implements ActionListener{
 			});
 			
 			timer.start();
+			path_length = lengths;
+			ispath = true;
 		}
 		
 		if (e.getSource() == cButton) {
 			mazePanel.redraw(0);
+			ispath = false;
+			path_length = 0;
+		}
+		
+		if (e.getSource() == vButton) {
+			vertex ^= 1;
+			mazePanel.setVertex((vertex == 1));
+			vButton.setText("Vertex " + ((vertex == 1)?"Off" : "On"));
+			if (ispath) {
+				mazePanel.redraw(0);				
+			}
+			else {				
+				mazePanel.redraw(path_length);				
+			}
 		}
 	}
 
