@@ -33,6 +33,11 @@ public class MazeFrame extends JFrame implements ActionListener{
 	JButton dButton;
 	JButton aButton;
 	JButton cButton;
+	JButton vButton;
+	int vertex;
+	
+	int path_length = 0;
+	boolean ispath = false;
 	
 	double Convertion = 1E-3;
 
@@ -117,10 +122,20 @@ public class MazeFrame extends JFrame implements ActionListener{
 	    Cbutton.addActionListener(this);
 	    
 	    cButton = Cbutton;
+	    
+	    JButton Vbutton = new JButton("Vertex On");
+	    Vbutton.setOpaque(true);
+	    Vbutton.setFocusable(false);
+	    Vbutton.setFont(font_used);
+	    Vbutton.setSize(50, 25);
+	    Vbutton.addActionListener(this);
+	    
+	    vButton = Vbutton;
 
 	    buttonsJPanel.add(Cbutton);
 	    buttonsJPanel.add(Abutton);
 	    buttonsJPanel.add(Dbutton);
+	    buttonsJPanel.add(Vbutton);
 	    
 	    topPanel.add(label);
 	    topPanel.add(buttonsJPanel);
@@ -210,6 +225,8 @@ public class MazeFrame extends JFrame implements ActionListener{
 	        });
 
 	        timer.start();
+	        path_length = lengths;
+			ispath = true;
 		}
 		
 		if (e.getSource() == aButton) {
@@ -239,10 +256,26 @@ public class MazeFrame extends JFrame implements ActionListener{
 			});
 			
 			timer.start();
+			path_length = lengths;
+			ispath = true;
 		}
 		
 		if (e.getSource() == cButton) {
 			mazePanel.redraw(0);
+			ispath = false;
+			path_length = 0;
+		}
+		
+		if (e.getSource() == vButton) {
+			vertex ^= 1;
+			mazePanel.setVertex((vertex == 1));
+			vButton.setText("Vertex " + ((vertex == 1)?"Off" : "On"));
+			if (ispath) {
+				mazePanel.redraw(0);				
+			}
+			else {				
+				mazePanel.redraw(path_length);				
+			}
 		}
 	}
 
