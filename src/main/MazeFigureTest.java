@@ -9,8 +9,8 @@ public class MazeFigureTest {
 
     public static void main(String[] args) {
 
-        int row = 10;
-        int col = 10;
+        int row = 25;
+        int col = 25;
 
         MazeFrame kFrame = new MazeFrame(row, col);
 

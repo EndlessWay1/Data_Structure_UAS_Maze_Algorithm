@@ -265,7 +265,6 @@ public class Graph<T> {
 	public Report<T> dijkstraReport(T src, T target) {
 		
 		long startTime = System.nanoTime();
-		
 		// map distance, such that when its unreacable, we know
 		Map<T, Integer> distance = new HashMap<>();
 		
@@ -296,8 +295,6 @@ public class Graph<T> {
 			if (Objects.equals(curr_vertex, target)) {
 				break;
 			}
-			
-
 			// looping through the edges and verteces
 			Node<Edge<T>> root = adj.get(curr_vertex).head;
 			while (root != null){
@@ -305,11 +302,6 @@ public class Graph<T> {
 				T n_vertex = edge.getNeighbor();
 				Integer n_weights = edge.getWeight();
 
-				// we have 2 assumsion
-				// 1. assume n_vertex is not in map, thus has curr length of inf, 
-				// thus we update the weights as its now reachable 
-				// 2. assume n_vertex is in map, where n_vertex has finite length and is greater than curr_dis + n_weights 
-				// this can be achived effectively by using an or
 				Integer new_distance = curr_dis + n_weights;
 				if (
 					!distance.containsKey(n_vertex) ||
@@ -325,7 +317,6 @@ public class Graph<T> {
 				root = root.getNext();
 			}
 		}
-
 		// backtracking
 		MyLinearList<T> return_path = new MyLinearList<>();
 		BTNode<Integer, MyLinearList<T>> ret;
@@ -340,8 +331,7 @@ public class Graph<T> {
 		}
 
 		long endTime = System.nanoTime() - startTime;
-		
-		
+
 		return new Report<>(
 				visitedMap.size(), 
 				(distance.containsKey(curr))?distance.get(target):Integer.MAX_VALUE, 

@@ -1,26 +1,18 @@
 package visual;
 
+import MazeGeneratorCath.Block;
+import MazeGeneratorCath.MazeMaker;
+import MazeGeneratorCath.MazeNode;
+import graph.MyLinearList;
+import graph.Node;
 import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
-import java.awt.GridLayout;
-import java.nio.channels.NonWritableChannelException;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.Map;
-
 import javax.swing.JPanel;
-import javax.swing.border.Border;
-import javax.swing.border.MatteBorder;
-
-import MazeGeneratorCath.Block;
-import MazeGeneratorCath.MazeMaker;
-import MazeGeneratorCath.MazeNode;
-import graph.Graph;
-import graph.MyLinearList;
-import graph.Node;
 
 public class MazePanel extends JPanel{
 	MazeMaker mazeMaker;
@@ -137,15 +129,8 @@ public class MazePanel extends JPanel{
 		setSizes();
 		
 		g2d.fillRect(offsetX + (cols - 1)*cellSize, offsetY + (rows - 1)*cellSize, cellSize, cellSize);
-	    
-	    
 	    g2d.fillRect(offsetX, offsetY, cellSize, cellSize);
-	    
-		
-		
 		g2d.setPaint(Color.red);
-		
-		
 		
 	    if (path != null) {	    	
 	    	Node<Integer> head =  path.head;

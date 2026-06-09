@@ -3,7 +3,6 @@ package MazeGeneratorCath;
 
 import graph.Graph;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -303,9 +302,7 @@ public class MazeMaker{
 
         }
 
-
         visited[i][j] = true;
-
 
         // traverse to posible left right, top bottom walls
         // its technically impossible for i or j to be 0 or rows or cols, because we only traverse to possible walls.
